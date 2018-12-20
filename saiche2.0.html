@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        input {
+            border: 1px solid yellow;
+            margin-left: 20px;
+            margin-top: 20px;
+        }
+
+        .way-content {
+            margin-left: auto;
+            margin-right: auto;
+            width: 1024px;
+            height: 700px;
+            position: relative;
+            border: 1px solid burlywood;
+            background-color: darkolivegreen;
+            overflow: hidden;
+        }
+       .car {
+            color:black;
+            width: 20px;
+            height: 20px;
+            border: 1px solid brown;
+            background: greenyellow;
+            position: absolute;
+            left: 502px;
+            top: 678px;
+            text-align: center;
+            z-index: 99;
+        }
+
+        .C-car {
+            color:black;
+            width: 20px;
+            height: 15px;
+            border: 1px solid brown;
+            background: red;
+            position: absolute;
+            left: 502px;
+            top: 0px;
+            text-align: center;
+            z-index: 98;
+        }
+
+        .way-grid {
+            margin: 0 0;
+            margin-left: 412px;
+            background-color: grey;
+            border: none;
+            border-right: 1px solid brown;
+            border-left: 1px solid brown;
+            min-width: 100px;
+            max-width: 1024px;
+            width: 200px;
+            height: 15px;
+            color: white;
+            font-size: 5px;
+            position: relative;
+            text-align: center;
+        }
+
+        .go {
+            background: greenyellow;
+            width: 100px;
+            height: 50px;
+            text-align: center;
+        }
+        .redblock{
+            width: 15px;
+            height: 15px;
+            background: red;
+            display: inline-block;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+<div id="way-content" class="way-content">
+    <div id="car" class="car"></div>
+</div>
+<div class="redblock"></div>
+<button onclick="clears()">终止</button>
+<button onclick="begin()">开始</button>
+<script>
+    function $(id) {
+        return document.getElementById(id)
+    }
+    var waysetValue = (1024 - wayWhite) / 2,
+        length = 60,
+        wayLeft = [],
+        gridStr = 'way-grid-',
+        wayWhite = 200,
+        timer = null,
+        Mark = 0,
+        num = 5;
+    // 初始化道路坐标
+    getFitstArray = function () {
+        // waysetValue = (1 - wayWhite) / 2;
+        for(var i = 0;i < length;i++){
+                wayLeft[i] = {};
+                wayLeft[i].wayLeft =  (1024 - wayWhite) / 2;
+        }
+    },
+    // 初始化道路
+    setWay = function () {
+        var docElem = document.createDocumentFragment()
+        for(var i = 0;i < length;i++){
+            var grid = document.createElement('div');
+            grid.className = 'way-grid';
+            grid.id = gridStr + i;
+            grid.textContent = '|';
+            docElem.appendChild(grid);
+        }
+        document.getElementById('way-content').appendChild(docElem);
+    },
+    // 根据数组刷新道路
+    getWayByArry = function(){
+        var CCarvalueList = document.getElementsByClassName('C-car');
+        while (CCarvalueList[0]) {
+            CCarvalueList[0].remove();
+        }
+        for (var i = 0; i < wayLeft.length; i++) {
+            var grid = document.getElementById(gridStr + i);
+            grid.style['width'] = wayWhite + PX;
+            grid.style['margin-left'] = wayLeft[i].wayLeft + PX;
+            if (wayLeft[i].CCarvalue) {
+                var CCarvalue = document.createElement('div');
+                CCarvalue.id = 'CCarvalue' + i;
+                CCarvalue.className = 'C-car';
+                CCarvalue.textContent = '+';
+                CCarvalue.style['left'] = wayLeft[i].CCarvalue + PX;
+                grid.appendChild(CCarvalue);
+            }
+        }
+    },
+    // 设置键盘按下的事件
+    keydown = document.onkeydown = function(e){
+          if(e.keyCode == 37){
+             $('car').style.left = ($('car').offsetLeft - 10) +'px'
+          }else if(e.keyCode == 39){
+             $('car').style.left = ($('car').offsetLeft + 10) +'px'
+          }
+    },
+    // 让道路动起来
+    moveRoad = function(){
+                length = length + 1;
+                var j = 1;
+                var ml = parseInt($('way-content').children[1].style.marginLeft)
+                var docElem = document.createDocumentFragment();
+                if(Math.floor(Math.random()*2)==0){
+                      num = 2
+                }else {
+                      num = -2
+                }
+               for(var i = length-1;i < length;i++){
+                    var randomLocation = Math.floor(Math.random()*20)
+                    var grid = document.createElement('div');
+                    var redLocation = Math.floor(Math.random()*(-180)+90)+'px'
+                    grid.className = 'way-grid';
+                    grid.id = gridStr + (length - 1 + i);
+                    grid.style.marginLeft = (ml || 412)  + num *j  + 'px'
+                    grid.textContent = '|';
+                    if(randomLocation == 2){
+                        grid.innerHTML += "<div class=redblock style=left:"+ redLocation +"></div>"
+                    }
+                    docElem.appendChild(grid)
+                    j--
+                }
+                document.getElementById('way-content').insertBefore(docElem,$('way-content').children[1]);
+                hitTest()
+            }
+    getFitstArray()
+    setWay()
+
+    function clears() {
+        clearInterval(timer)
+    }
+
+    function hitTest(){
+            for(var i = 1;i < 48;i++){
+            var iLeft = $('way-content').children[i].offsetLeft
+            var carLeft =  $('car').offsetLeft
+            var carTop = $('car').offsetTop
+            //和墙壁的碰撞检测碰撞检测
+            if(iLeft == carLeft || (iLeft + 200 == carLeft + 20)){
+                 if(-3 <$('way-content').children[i].offsetTop -  $('car').offsetTop < 3){
+                     clears()
+                     alert('游戏结束')
+                     window.location.reload()
+                     break;
+                 }
+            }
+            //和小方块的碰撞检测
+            if($('way-content').children[i].children[0]){
+               // console.log(i)
+               // console.log($('way-content').children[i])
+               var redBlockLeft = $('way-content').children[i].children[0].offsetLeft + $('way-content').children[i].offsetLeft
+               var redBlockTop =  $('way-content').children[i].offsetTop
+               var chaLeft = carLeft - redBlockLeft
+               var chaTop = redBlockTop - 685
+                console.log(chaTop)
+                console.log(chaLeft)
+                // console.log(carLeft)
+                // console.log(redBlockLeft)
+               if((-15<= chaLeft && chaLeft <=15) && (-10<= chaTop && chaTop<=10)){
+                   clears()
+                   alert('游戏结束了')
+                   window.location.reload()
+                   break
+                }
+            }
+        }
+    }
+    function begin() {
+        timer = setInterval( moveRoad,30)
+    }
+
+</script>
+</body>
+</html>
